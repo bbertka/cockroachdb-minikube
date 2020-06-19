@@ -209,7 +209,7 @@ You have successfully set up CockroachDB on your system with Kubernetes!
 
 = Part 2 - Configuring HAproxy for CockroachDB on Minukube
 
-Before we can test effectively test the behaviour and performance of an HA CockroachDB cluster under various circumstances including failing nodes, and workloads in our home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minikube environment. We will first set up HAproxy to get our system wired up for communicating from our local workstation into the Minukube cluster. 
+Before we can effectively test the behaviour and performance of an HA CockroachDB cluster under various circumstances including failing nodes, and workloads in our home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minikube environment. We will first set up HAproxy to get our system wired up for communicating from our local workstation into the Minukube cluster. 
 
 CockroachDB ships with come goodness that makes working with HAproxy easier.  Included is an HAproxy config file generator which we can leverage to more easily build a config which allows us to loadbalance into our cluster.
 
@@ -416,5 +416,5 @@ listen psql
 $ haproxy -f haproxy.cfg
 ----
 
-= Part 3 - Performance Testing and Monitoring CockroachDB Workloads
+= Part 3 - CockroachDB Workload Monitoring & Performance
 
