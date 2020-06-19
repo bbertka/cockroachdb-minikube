@@ -201,3 +201,74 @@ Time: 75.7201ms
 root@cockroachdb-public:26257/defaultdb> \q
 pod "cockroachdb" deleted
 ----
+
+= Congratulations!
+You have successfully set up CockroachDB on your system with Kubernetes!
+
+== Part 2 - Behaviour & Performance Monitoring 
+
+Now we will test the behaviour and performance of CockroachDB under various circumstances including failing nodes, and workloads.  Since we are n a home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minukube environment. Hence we will first set up HAproxy and get our system wired up for communucating from our local workstation into the Minukube cluster. 
+
+But this isn't an HAproxy lab, its a CockroachDB lab! CockroachDB comes with an HAproxy config file generator which we can leverage to more easily build a config which allows us to loadbalance into our cluster.
+
+= Install CockroachDB locally
+. Download the CockroachDB bits and move to a user accessible location
++
+----
+$ curl https://binaries.cockroachdb.com/cockroach-v20.1.2.darwin-10.9-amd64.tgz | tar -xJ
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 40.3M  100 40.3M    0     0  10.6M      0  0:00:03  0:00:03 --:--:-- 10.6M
+----
++
+----
+$ sudo cp -i cockroach-v20.1.2.darwin-10.9-amd64/cockroach /usr/local/bin/
+----
++
+----
+$ which cockroach
+/usr/local/bin/cockroach
+----
+. Open the necessary ports for accessing the cluster's ingress service on port 26257
++
+----
+$ kubectl port-forward service/cockroachdb-public 26257
+Forwarding from 127.0.0.1:26257 -> 26257
+Forwarding from [::1]:26257 -> 26257
+----
+. In a second shell session with the port forwarding currently running, leverage the CockroachDB HAProxy config generator specifying your localhost:26257 address on the port. A file called haproxy.cfg will be created in the directory this tool is run.
++
+----
+$ cockroach gen haproxy --insecure --host=127.0.0.1 --port=26257
+----
++
+. View the newly created HAproxy config file.  Notice the default host names created for us. We will need to confgiure our system to understand these mappings later.
++
+----
+$ cat haproxy.cfg 
+
+global
+  maxconn 4096
+
+defaults
+    mode                tcp
+    # Timeout values should be configured for your specific use.
+    # See: https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4-timeout%20connect
+    timeout connect     10s
+    timeout client      1m
+    timeout server      1m
+    # TCP keep-alive on client side. Server already enables them.
+    option              clitcpka
+
+listen psql
+    bind :26257
+    mode tcp
+    balance roundrobin
+    option httpchk GET /health?ready=1
+    server cockroach1 cockroachdb-0.cockroachdb.default.svc.cluster.local:26257 check port 8080
+    server cockroach2 cockroachdb-2.cockroachdb.default.svc.cluster.local:26257 check port 8080
+    server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 check port 8080
+----
+
+= Install HAproxy
+
