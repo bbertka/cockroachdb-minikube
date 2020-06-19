@@ -141,3 +141,53 @@ Forwarding from [::1]:8080 -> 8080
 . Access the Console from your Chrome browser (preferred): link:http://localhost:8080[http://localhost:8080]
 
 image:images/1-view-dashboard.png[]
+
+== Creating your first Database
+Now that we have a fully operational CockroachDB cluster on our system, lets load up our first DB.  We will be leveraging an included packaged SQL client from within the official CockroachDB docker image, allowig it to be temporary as we load items into a fresh schema.
+
+. Fire up a CockroachDB SQL client from within your Kubernetes cluster
++
+----
+kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- sql --insecure --host=cockroachdb-public
+If you don't see a command prompt, try pressing enter.
+
+root@cockroachdb-public:26257/defaultdb> 
+----
+. Now let's create the database 'bank' and add some initial tables and entries
++
+----
+root@cockroachdb-public:26257/defaultdb> CREATE DATABASE bank;
+CREATE DATABASE
+
+Time: 87.37572ms
+
+root@cockroachdb-public:26257/defaultdb> CREATE TABLE bank.accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      balance DECIMAL
+  );
+CREATE TABLE
+
+Time: 69.467532ms
+
+root@cockroachdb-public:26257/defaultdb> INSERT INTO bank.accounts (balance)
+  VALUES
+      (1000.50), (20000), (380), (500), (55000);
+INSERT 5
+
+Time: 40.176844ms
+----
+. Let's confirm this data exists and ready for use
++
+----
+root@cockroachdb-public:26257/defaultdb> SELECT * FROM bank.accounts;
+                   id                  | balance
+---------------------------------------+----------
+  19cb2405-0346-4796-99e0-cd40f35b565d |     380
+  2a5d7a25-8669-4073-9a57-9a3168ea3fc0 |   55000
+  49450989-d5d9-457b-86ea-e31c492c81f9 |     500
+  ac1c0c21-f12f-4557-95e5-84041278a651 | 1000.50
+  f79eeab7-ac6a-4c23-8ac3-4223a808b1d0 |   20000
+(5 rows)
+
+Time: 75.7201ms
+----
