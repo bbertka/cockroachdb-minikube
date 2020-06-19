@@ -419,12 +419,13 @@ $ haproxy -f haproxy.cfg
 = Part 3 - CockroachDB Workload Monitoring & Performance
 
 . We will start with executing the samples found in the link:https://www.cockroachlabs.com/docs/v2.1/cockroach-workload.html[official CockroachDB sample workloads] documentation
++
 ----
 $ cockroach workload init bank 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:10:07.270919 1 workload/workloadsql/dataload.go:140  imported bank (0s, 1000 rows)
 I200618 17:10:07.290388 1 workload/workloadsql/workloadsql.go:113  starting 9 splits
 ----
-+
+
 ----
 $ cockroach workload run bank --duration=1m 'postgresql://root@localhost:26257?sslmode=disable'
 _elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(ms)
@@ -434,7 +435,7 @@ _elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(
     4.0s        0           41.4           54.0    151.0    469.8    637.5    637.5 transfer
     5.0s        0           83.0           59.8     83.9    201.3    285.2    285.2 transfer
 ----
-+
+
 ----
 $ cockroach workload run kv --duration=1m 'postgresql://root@localhost:26257?sslmode=disable'
 _elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(ms)
@@ -443,7 +444,7 @@ _elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(
     3.0s        0          261.2          271.5     28.3     50.3     60.8     79.7 write
     4.0s        0          194.8          252.3     30.4    100.7    209.7    234.9 write
 ----
-+
+
 ----
 $ cockroach workload init intro 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:13:50.480674 1 workload/workloadsql/dataload.go:140  imported mytable (0s, 42 rows)
@@ -496,7 +497,7 @@ Time: 34.221ms
 
 root@:26257/defaultdb> exit
 ----
-+
+
 ----
 $ cockroach workload init startrek 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:15:29.804602 1 workload/workloadsql/dataload.go:140  imported episodes (0s, 79 rows)
@@ -544,7 +545,7 @@ Time: 10.088ms
 
 root@:26257/defaultdb> exit
 ----
-+
+
 ----
 $ cockroach workload init tpcc 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:16:10.159641 1 workload/workloadsql/dataload.go:140  imported warehouse (0s, 1 rows)
@@ -557,7 +558,7 @@ I200618 17:16:39.218253 1 workload/workloadsql/dataload.go:140  imported item (7
 I200618 17:17:04.904567 1 workload/workloadsql/dataload.go:140  imported stock (26s, 100000 rows)
 I200618 17:17:56.312251 1 workload/workloadsql/dataload.go:140  imported order_line (51s, 300343 rows)
 ----
-+
+
 ----
 $ cockroach workload run tpcc --duration=10m 'postgresql://root@localhost:26257?sslmode=disable'
 Initializing 2 connections...
