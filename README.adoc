@@ -569,10 +569,7 @@ I200618 17:16:32.068619 1 workload/workloadsql/dataload.go:140  imported new_ord
 I200618 17:16:39.218253 1 workload/workloadsql/dataload.go:140  imported item (7s, 100000 rows)
 I200618 17:17:04.904567 1 workload/workloadsql/dataload.go:140  imported stock (26s, 100000 rows)
 I200618 17:17:56.312251 1 workload/workloadsql/dataload.go:140  imported order_line (51s, 300343 rows)
-----
 
-. Workload 7
-----
 $ cockroach workload run tpcc --duration=10m 'postgresql://root@localhost:26257?sslmode=disable'
 Initializing 2 connections...
 Initializing 10 workers and preparing statements...
@@ -587,8 +584,43 @@ _elapsed_______tpmC____efc__avg(ms)__p50(ms)__p90(ms)__p95(ms)__p99(ms)_pMax(ms)
 ----
 
 
-After running the above workloads [1-7] our dashboard now has some activity to report on the various tabs:
+After running the above workloads [1-6] our dashboard now has some activity to report on the various tabs:
 
 image:images/2-generating-loads-2.png[]
 image:images/2-generating-loads-3.png[]
+
+= Part 4 - CockroachDB High Availability
+
+In the previous section we simply accessed a healthy cluster and performed activity such that we were able to watch the Console update in real time. Pretty cool eh?  Now we will see how resialiant CockroachDB really is by unleashing the Chaos monkey, or chaos roacher, you!
+
+. Start a workload that runs for 60 minutes so we have enough time to explore the resiliancy and self-healing aspects of the system
++
+----
+$ cockroach workload run tpcc --duration=60m 'postgresql://root@localhost:26257?sslmode=disable'
+Initializing 2 connections...
+Initializing 10 workers and preparing statements...
+_elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(ms)
+    1.0s        0            0.0            0.0      0.0      0.0      0.0      0.0 delivery
+...
+----
+
+. Cockroach leverages Kubernetes to maintain Ha for the three DB nodes we have deployed, when we terminate one node, it comes right back!  Let's see what happens when we gracefully shut down a Kubernetes node.  Note that the Console shows the cooresponding node to be 'suspect'.  Wait for a short duration and we will see the node was redeployed by Kubernetes.
++
+----
+$ kubectl delete pod/cockroachdb-2
+pod "cockroachdb-2" deleted
+----
++
+image:images/2-generating-loads-4.png[]
++
+image:images/2-generating-loads-5.png[]
+
+. We can also add nodes any time, watch what happens as we add a new node to the running stateful set, a fourth node is available to the system.
++
+----
+$ kubectl scale statefulset cockroachdb --replicas=4
+statefulset.apps/cockroachdb scaled
+----
++
+image:images/2-generating-loads-6.png[]
 
