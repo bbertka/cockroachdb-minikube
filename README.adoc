@@ -8,6 +8,8 @@ After working through this lab you will have a highly-available triple-node Cock
 == Assumptions
 . This lab is intended to jumpstart your learning and allow you the freedom to explore CockroachDB with minimal effort in your local (home) dev environment.  Please consult the official documentation for getting a production grade set of clusters running. Note that instead of creating a 'tools' VM, this lab is installing software on your local machine.  Also this lab makes use of installing binaries when possible as a matter of personal taste.
 
+= Part 1 - Setting up the Environment
+
 == Requirements
 * link:https://www.cockroachlabs.com/docs/stable/install-cockroachdb-mac.html#download-the-binary-1/[CockroachDB]
 * link:https://www.virtualbox.org/[Virtualbox]
