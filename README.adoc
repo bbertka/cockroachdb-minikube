@@ -66,6 +66,7 @@ image:images/install-minikube.png[]
 
 == Install CockroachDB 
 For simplicity sake, let's start CockroachDB via a standard Kubernetes Config YAML rather than leveraging link:https://helm.sh/[Helm].  We will want to be familiar with what is being deployed, and can inspect the config YAML stateful set. It's is assumed the user may not already be using Helm or new to Kubernetes.
+
 . First lets download and check out what we plan to deploy
 +
 ----
@@ -75,6 +76,7 @@ $ curl -O https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/k
 100  8149  100  8149    0     0  17792      0 --:--:-- --:--:-- --:--:-- 17792
 ...
 ----
+
 . Open the stateful set and note we will be deploying three replica CockroachDB nodes
 +
 ----
@@ -96,12 +98,14 @@ spec:
         app: cockroachdb
 ...
 ----
+
 . Deploy the database as a cluster within Minukube
 +
 ----
 $ kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cockroachdb-statefulset.yaml
 ----
-. View the newly created resources
+
+. View the newly created resources.  We have three pods and some services to allow communication. 
 +
 ----
 $ kubectl get all
@@ -124,3 +128,15 @@ job.batch/cluster-init   0/1           26h        1h
 ----
 
 == View the CockroachDB Dashboard
+What fun would administering a highly available and elastic system without a sweet dashboard?  Lets view the cockroach dashboard and get a feel for what kind of monitoring capabilities we have. However, because Cockroach is running within a virtualized environment on our machine, we need to enable local network access in order to view via a web browser. A feature of CockroachhDB is that Any node in the cluster can be leveraged to access the Console. 
+
+. Set up a local port forward to port 8080 within the kubernetes cluster to the '0' node
++
+----
+$ kubectl port-forward cockroachdb-0 8080
+Forwarding from 127.0.0.1:8080 -> 8080
+Forwarding from [::1]:8080 -> 8080
+----
+
+. Access the Console from your Chrome browser (preferred): link:http://localhost:8080[http://localhost:8080]
+image:images/1-view-dashboard.png[]
