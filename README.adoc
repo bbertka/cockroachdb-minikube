@@ -593,7 +593,7 @@ image:images/2-generating-loads-3.png[]
 
 In the previous section we simply accessed a healthy cluster and performed activity such that we were able to watch the Console update in real time. Pretty cool eh?  Now we will see how resialiant CockroachDB really is by unleashing the Chaos monkey, or chaos roacher, you!
 
-. Start a workload that runs for 60 minutes so we have enough time to explore the resiliancy and self-healing aspects of the system
+. Start a workload that runs for 60 minutes so we have enough time to explore the resilient and self-healing aspects of CockroachDB
 +
 ----
 $ cockroach workload run tpcc --duration=60m 'postgresql://root@localhost:26257?sslmode=disable'
@@ -614,6 +614,12 @@ pod "cockroachdb-2" deleted
 image:images/2-generating-loads-4.png[]
 image:images/2-generating-loads-5.png[]
 
+. Forcefully (ungraceful) node killing yields the same result as before -- the system right away notices a node is down and anew one is created.
++
+----
+$ kubectl delete pod/cockroachdb-2 --grace-period=0 --force
+----
+
 . We can also add nodes any time, watch what happens as we add a new node to the running stateful set, a fourth node is available to the system.
 +
 ----
@@ -623,3 +629,99 @@ statefulset.apps/cockroachdb scaled
 +
 image:images/2-generating-loads-6.png[]
 
+== Decommissioning CockroachDB Nodes
+
+We have seen how easy it is to scale up the CockroachDB cluster, and how resilient it can be with Kubernetes respawning nodes.  But how to we properly decomission a node?  Say for instance we want to remove permenantly all but one node in the cluster (for instance the node we are accessing the Consule through).  To do that we need to properly decommission the unwanted nodes.  
+
+CockroachDB ships with more goodness to help you decommission nodes via a 'decommission' routine available to you witht he cockroach cli.  We need to know the cluser ID number for each node we wish to decommission.  In this case, we want to decom all but the '0' node which is running our dashboard.
+
+. Execute a temporary CockroachDB container that runs get node status information on each node in the cluster, make note of the IDs in the left column; we have IDs 1-4 corresponding to our four clusters.  Note that node ID does not exactl map to the FQDN's replica number!
++
+----
+$ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node status --insecure --host=cockroachdb-public
+  id |                          address                          |                        sql_address                        |  build  |            started_at            |            updated_at            | locality | is_available | is_live
+-----+-----------------------------------------------------------+-----------------------------------------------------------+---------+----------------------------------+----------------------------------+----------+--------------+----------
+   1 | cockroachdb-0.cockroachdb.default.svc.cluster.local:26257 | cockroachdb-0.cockroachdb.default.svc.cluster.local:26257 | v20.1.2 | 2020-06-18 18:25:10.586953+00:00 | 2020-06-18 19:13:46.753318+00:00 |          | true         | true
+   2 | cockroachdb-2.cockroachdb.default.svc.cluster.local:26257 | cockroachdb-2.cockroachdb.default.svc.cluster.local:26257 | v20.1.2 | 2020-06-18 19:07:40.951313+00:00 | 2020-06-18 19:13:50.059169+00:00 |          | true         | true
+   3 | cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 | cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 | v20.1.2 | 2020-06-18 19:07:36.339972+00:00 | 2020-06-18 19:13:49.926939+00:00 |          | true         | true
+   4 | cockroachdb-3.cockroachdb.default.svc.cluster.local:26257 | cockroachdb-3.cockroachdb.default.svc.cluster.local:26257 | v20.1.2 | 2020-06-18 19:08:09.161033+00:00 | 2020-06-18 19:13:46.791056+00:00 |          | true         | true
+(4 rows)
+pod "cockroachdb" deleted
+----
+
+. Run the CockroachDB 'decommission' routine on nodes with ID '2', see how the Console shows the 'decommissioning' state for the cooresponding pod
++
+----
+$ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node decommission 2 --insecure --host=cockroachdb-public
+If you don't see a command prompt, try pressing enter.
+.
+  id | is_live | replicas | is_decommissioning | is_draining
+-----+---------+----------+--------------------+--------------
+   2 |  true   |       43 |        true        |    false
+(1 row)
+.......
+No more data reported on target nodes. Please verify cluster health before removing the nodes.
+pod "cockroachdb" deleted
+----
+image:images/2-decom-1.png[]
+
+. Run the CockroachDB 'decommission' routine on remaining nodes with ID '3' and '4'
+$ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node decommission 3 --insecure --$
+If you don't see a command prompt, try pressing enter.
+.
+  id | is_live | replicas | is_decommissioning | is_draining
+-----+---------+----------+--------------------+--------------
+   3 |  true   |       43 |        true        |    false
+(1 row)
+.......
+No more data reported on target nodes. Please verify cluster health before removing the nodes.
+pod "cockroachdb" deleted
+
+$ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node decommission 4 --insecure --$
+If you don't see a command prompt, try pressing enter.
+.
+  id | is_live | replicas | is_decommissioning | is_draining
+-----+---------+----------+--------------------+--------------
+   4 |  true   |       43 |        true        |    false
+(1 row)
+.......
+No more data reported on target nodes. Please verify cluster health before removing the nodes.
+pod "cockroachdb" deleted
+----
+
+. We can now update the Kubernetes stateful-set YAML manifest with our desired number of replicas = 1.  Upon opening the editor, find the spec.replicas definition and update to have only one node. Save/exit when you are finished.
++
+----
+$ kubectl edit statefulset.apps/cockroachdb
+...
+  selfLink: /apis/apps/v1/namespaces/default/statefulsets/cockroachdb
+  uid: 599c096d-a40d-4355-bd6b-d7c03aace69e
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: cockroachdb
+  serviceName: cockroachdb
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cockroachdb
+...
+statefulset.apps/cockroachdb edited
+----
+
+. View the nodes being terminated, all but one
++
+----
+$ kubectl get all
+NAME                READY   STATUS        RESTARTS   AGE
+pod/cockroachdb-0   1/1     Running       2          5h26m
+pod/cockroachdb-1   0/1     Terminating   0          35m
+pod/cockroachdb-2   1/1     Terminating   0          35m
+pod/cockroachdb-3   0/1     Terminating   0          35m
+----
+
+= Part 5 - Python Code Example
