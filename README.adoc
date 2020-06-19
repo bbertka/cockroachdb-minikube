@@ -232,7 +232,7 @@ $ which cockroach
 /usr/local/bin/cockroach
 ----
 
-== Generate and HAproxy config via CockroachDB's generator
+== Generate an HAproxy config via CockroachDB's generator
 
 . Open the necessary ports for accessing the cluster's ingress service on port 26257
 +
