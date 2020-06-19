@@ -9,12 +9,12 @@ After working through this lab you will have a highly-available triple-node Cock
 . This lab is intended to jumpstart your learning and allow you the freedom to explore CockroachDB with minimal effort in your local (home) dev environment.  Please consult the official documentation for getting a production grade set of clusters running. Note that instead of creating a 'tools' VM, this lab is installing software on your local machine.  Also this lab makes use of installing binaries when possible as a matter of personal taste.
 
 == Requirements
-. link:https://www.cockroachlabs.com/docs/stable/install-cockroachdb-mac.html#download-the-binary-1/[CockroachDB]
-. link:https://www.virtualbox.org/[Virtualbox]
-. link:http://https://kubernetes.io/docs/tasks/tools/install-kubectl/[Kubectl]
-. link:https://kubernetes.io/docs/tasks/tools/install-minikube/[Minikube]
-. link:https://https://formulae.brew.sh/formula/haproxy/[HAproxy]
-. link:https://pypi.org/project/psycopg2/[psycopg2]
+* link:https://www.cockroachlabs.com/docs/stable/install-cockroachdb-mac.html#download-the-binary-1/[CockroachDB]
+* link:https://www.virtualbox.org/[Virtualbox]
+* link:http://https://kubernetes.io/docs/tasks/tools/install-kubectl/[Kubectl]
+* link:https://kubernetes.io/docs/tasks/tools/install-minikube/[Minikube]
+* link:https://https://formulae.brew.sh/formula/haproxy/[HAproxy]
+* link:https://pypi.org/project/psycopg2/[psycopg2]
 
 == Setup kubectl
 . Download and Install kubectl
@@ -23,6 +23,10 @@ After working through this lab you will have a highly-available triple-node Cock
 $ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
 $ chmod +x ./kubectl
 $ sudo mv ./kubectl /usr/local/bin/kubectl
+----
+. Check for successful installation
++
+----
 $ kubectl version --client
     Client Version: version.Info { 
     Major:"1",
@@ -37,15 +41,15 @@ $ kubectl version --client
     }
 ----
 
-== Setup Minukube
+== Setup Minikube
 . Make sure link:https://www.virtualbox.org/[Virtualbox] is already installed on your machine.
-. Install & Start Minikube
+. Install Minikube
 +
 ----
 $ curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-darwin-amd64 && chmod +x minikube
 $ sudo mv minikube /usr/local/bin
 ----
-. Test your installation of Minukube
+. Start Minikube
 +
 ----
 $ minikube start
