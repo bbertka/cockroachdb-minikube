@@ -612,7 +612,6 @@ pod "cockroachdb-2" deleted
 ----
 +
 image:images/2-generating-loads-4.png[]
-+
 image:images/2-generating-loads-5.png[]
 
 . We can also add nodes any time, watch what happens as we add a new node to the running stateful set, a fourth node is available to the system.
