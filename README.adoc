@@ -41,7 +41,7 @@ $ kubectl version --client
     }
 ----
 
-== Setup Minikube
+== Setup Minikube within Virtualbox
 . Make sure link:https://www.virtualbox.org/[Virtualbox] is already installed on your machine.
 . Install Minikube
 +
@@ -63,3 +63,64 @@ $ minikube start
 🏄  Done! kubectl is now configured to use "minikube"
 ----
 image:images/install-minikube.png[]
+
+== Install CockroachDB 
+For simplicity sake, let's start CockroachDB via a standard Kubernetes Config YAML rather than leveraging link:https://helm.sh/[Helm].  We will want to be familiar with what is being deployed, and can inspect the config YAML stateful set. It's is assumed the user may not already be using Helm or new to Kubernetes.
+. First lets download and check out what we plan to deploy
++
+----
+$ curl -O https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cockroachdb-statefulset.yaml
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  8149  100  8149    0     0  17792      0 --:--:-- --:--:-- --:--:-- 17792
+...
+----
+. Open the stateful set and note we will be deploying three replica CockroachDB nodes
++
+----
+$ cat cockroachdb-statefulset.yaml 
+...
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+spec:
+  serviceName: "cockroachdb"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cockroachdb
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+...
+----
+. Deploy the database as a cluster within Minukube
++
+----
+$ kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cockroachdb-statefulset.yaml
+----
+. View the newly created resources
++
+----
+$ kubectl get all
+
+NAME                READY   STATUS    RESTARTS   AGE
+pod/cockroachdb-0   1/1     Running   1          1h
+pod/cockroachdb-1   1/1     Running   1          1h
+pod/cockroachdb-2   1/1     Running   1          1h
+
+NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                          AGE
+service/cockroachdb          ClusterIP      None             <none>        26257/TCP,8080/TCP               1h
+service/cockroachdb-public   ClusterIP      10.106.48.55     <none>        26257/TCP,8080/TCP               1h
+service/kubernetes           ClusterIP      10.96.0.1        <none>        443/TCP                          1h
+
+NAME                           READY   AGE
+statefulset.apps/cockroachdb   3/3     1h
+
+NAME                     COMPLETIONS   DURATION   AGE
+job.batch/cluster-init   0/1           26h        1h
+----
+
+== View the CockroachDB Dashboard
