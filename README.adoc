@@ -231,6 +231,9 @@ $ sudo cp -i cockroach-v20.1.2.darwin-10.9-amd64/cockroach /usr/local/bin/
 $ which cockroach
 /usr/local/bin/cockroach
 ----
+
+== Generate and HAproxy config via CockroachDB's generator
+
 . Open the necessary ports for accessing the cluster's ingress service on port 26257
 +
 ----
@@ -244,7 +247,7 @@ Forwarding from [::1]:26257 -> 26257
 $ cockroach gen haproxy --insecure --host=127.0.0.1 --port=26257
 ----
 +
-. View the newly created HAproxy config file.  Notice the default host names created for us. We will need to confgiure our system to understand these mappings later.
+. View the newly created HAproxy config file.  Notice the default host names created for us. We will need to confgiure our system to understand these mappings later.  At this point you can close your port-forward session.
 +
 ----
 $ cat haproxy.cfg 
@@ -272,7 +275,7 @@ listen psql
     server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 check port 8080
 ----
 
-== Setup HAproxy
+== Run HAproxy with the CockroachDb HAproxy Config file
 
 Did I mention this isnt an HAproxy lab?  It isn't! However we may not already have it available on our system.  We will use the Brew package manager for Mac to install this quickly.
 
@@ -299,7 +302,9 @@ $ haproxy -f haproxy.cfg
 
 Note the errors above, can you determine why this did not work?  If you guessed that we werent able to resolve DNS you were correct. Before we go setting up DNS servers or modifying system files, lets make sure we can communicate properly between our local system and our cluster's services.
 
-. Enable support for running a loadbalancer on Minikube with Minikube's communication 'tunnel'
+== Configure Minikube to support Haproxy loadbalancing 
+
+. Enable support for running a loadbalancer on Minikube with Minikube's communication 'tunnel'. Starting the tunnel is simple.
 +
 ----
 $ minikube tunnel
