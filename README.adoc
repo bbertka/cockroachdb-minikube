@@ -145,7 +145,7 @@ Forwarding from [::1]:8080 -> 8080
 image:images/1-view-dashboard.png[]
 
 == Creating your first Database
-Now that we have a fully operational CockroachDB cluster on our system, lets load up our first DB.  We will be leveraging an included packaged SQL client from within the official CockroachDB docker image, allowig it to be temporary as we load items into a fresh schema.
+Now that we have a fully operational CockroachDB cluster on our system, lets load up our first DB.  We will be leveraging an included packaged SQL client from within the official CockroachDB docker image, allowing it to be temporary as we load items into a fresh schema.
 
 . Fire up a CockroachDB SQL client from within your Kubernetes cluster
 +
@@ -272,5 +272,132 @@ listen psql
     server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 check port 8080
 ----
 
-== Install HAproxy
+== Setup HAproxy
+
+Did I mention this isnt an HAproxy lab?  It isn't! However we may not already have it available on our system.  We will use the Brew package manager for Mac to install this quickly.
+
+. Install Haproxy
++
+----
+$ brew install haproxy
+----
++
+----
+$ which haproxy
+/usr/local/bin/haproxy
+----
+
+. Start the proxy with the generated config file
++
+----
+$ haproxy -f haproxy.cfg
+[ALERT] 169/102000 (21502) : parsing [haproxy.cfg:20] : 'server cockroach1' : could not resolve address 'cockroachdb-0.cockroachdb.default.svc.cluster.local'.
+[ALERT] 169/102000 (21502) : parsing [haproxy.cfg:21] : 'server cockroach2' : could not resolve address 'cockroachdb-2.cockroachdb.default.svc.cluster.local'.
+[ALERT] 169/102000 (21502) : parsing [haproxy.cfg:22] : 'server cockroach3' : could not resolve address 'cockroachdb-1.cockroachdb.default.svc.cluster.local'.
+[ALERT] 169/102000 (21502) : Failed to initialize server(s) addr.
+----
+
+Note the errors above, can you determine why this did not work?  If you guessed that we werent able to resolve DNS you were correct. Before we go setting up DNS servers or modifying system files, lets make sure we can communicate properly between our local system and our cluster's services.
+
+. Enable support for running a loadbalancer on Minikube with Minikube's communication 'tunnel'
++
+----
+$ minikube tunnel
+
+Status:    
+    machine: minikube
+    pid: 22499
+    route: 10.96.0.0/12 -> 192.168.99.100
+    minikube: Running
+    services: [cockroachdb-pod0, cockroachdb-pod1, cockroachdb-pod2]
+    errors: 
+        minikube: no errors
+        router: no errors
+        loadbalancer emulator: no errors
+----
+
+. Note the pod services are listed. Let's inspect what has happened to our closuer services. Observe we have External IP addresses assigned to our pod services.
++
+----
+$ kubectl get svc -w
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)                          AGE
+cockroachdb          ClusterIP      None             <none>           26257/TCP,8080/TCP               144m
+cockroachdb-pod0     LoadBalancer   10.97.133.136    10.97.133.136    26257:31738/TCP,8080:32411/TCP   2m8s
+cockroachdb-pod1     LoadBalancer   10.106.246.239   10.106.246.239   26257:30140/TCP,8080:31663/TCP   2m2s
+cockroachdb-pod2     LoadBalancer   10.97.97.234     10.97.97.234     26257:32424/TCP,8080:30045/TCP   118s
+----
+
+. With the Minukube tunnel still running, Let's test that we can reach the CockroachDB Console via one of thos external IP addresses
++
+----
+$ curl http://10.97.133.136:8080
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cockroach Console</title>
+...
+</html>
+----
+
+. Remember the HA config file contained three FQDN for our cluster?  Let's map our newly exposed IP address to those names within our local system's /etc/hosts file. Here I have removed the .local extension and made the cooresponding update with in the haproxy.cfg file
++
+----
+$ sudo nano /etc/hosts
+----
++
+----
+$ cat /etc/hosts
+...
+10.97.133.136 cockroachdb-0.cockroachdb.default.svc.cluster
+10.106.246.239 cockroachdb-1.cockroachdb.default.svc.cluster
+10.97.97.234 cockroachdb-2.cockroachdb.default.svc.cluster
+----
+
+. With the Minukube tunnel still running, Test that we can make FQDN requests to our cluster
++
+----
+$ curl http://cockroachdb-2.cockroachdb.default.svc.cluster:8080/
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cockroach Console</title>
+...
+</html>
+----
+
+. Update the haproxy.cfg file with the names you set within your hostfile
++
+----
+$ cat haproxy.cfg 
+
+global
+  maxconn 4096
+
+defaults
+    mode                tcp
+    # Timeout values should be configured for your specific use.
+    # See: https://cbonte.github.io/haproxy-dconv/1.8/configuration.html#4-timeout%20connect
+    timeout connect     10s
+    timeout client      1m
+    timeout server      1m
+    # TCP keep-alive on client side. Server already enables them.
+    option              clitcpka
+
+listen psql
+    bind :26257
+    mode tcp
+    balance roundrobin
+    option httpchk GET /health?ready=1
+    server cockroach1 cockroachdb-0.cockroachdb.default.svc.cluster:26257 check port 8080
+    server cockroach2 cockroachdb-2.cockroachdb.default.svc.cluster:26257 check port 8080
+    server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster:26257 check port 8080
+----
+
+. With Minikube tunnel still running, Start HAproxy with your new config file. Expect no errors if you have done everything correctly
++
+----
+$ haproxy -f haproxy.cfg
+----
+
+== Performance Testing and Monitoring CoockroachDB Workloads
 
