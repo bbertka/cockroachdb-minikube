@@ -62,4 +62,4 @@ $ minikube start
 🌟  Enabled addons: default-storageclass, ingress, storage-provisioner
 🏄  Done! kubectl is now configured to use "minikube"
 ----
-image:images/1-install-minikube.png[]
+image:images/install-minikube.png[]
