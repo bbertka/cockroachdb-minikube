@@ -1,1 +1,0 @@
-# cockroachdb-minikube-tut
