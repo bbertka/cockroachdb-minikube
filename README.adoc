@@ -202,16 +202,16 @@ root@cockroachdb-public:26257/defaultdb> \q
 pod "cockroachdb" deleted
 ----
 
-= Congratulations!
+== Congratulations!
 You have successfully set up CockroachDB on your system with Kubernetes!
 
-== Part 2 - Behaviour & Performance Monitoring 
+= Part 2 - Behaviour & Performance Monitoring 
 
 Now we will test the behaviour and performance of CockroachDB under various circumstances including failing nodes, and workloads.  Since we are n a home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minukube environment. Hence we will first set up HAproxy and get our system wired up for communucating from our local workstation into the Minukube cluster. 
 
 But this isn't an HAproxy lab, its a CockroachDB lab! CockroachDB comes with an HAproxy config file generator which we can leverage to more easily build a config which allows us to loadbalance into our cluster.
 
-= Install CockroachDB locally
+== Install CockroachDB locally
 . Download the CockroachDB bits and move to a user accessible location
 +
 ----
@@ -270,5 +270,5 @@ listen psql
     server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster.local:26257 check port 8080
 ----
 
-= Install HAproxy
+== Install HAproxy
 
