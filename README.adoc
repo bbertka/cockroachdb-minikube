@@ -195,3 +195,9 @@ root@cockroachdb-public:26257/defaultdb> SELECT * FROM bank.accounts;
 
 Time: 75.7201ms
 ----
+. We are finished with DB creation and can now quit the shell and destroy the temp container
++
+----
+root@cockroachdb-public:26257/defaultdb> \q
+pod "cockroachdb" deleted
+----
