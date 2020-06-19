@@ -303,7 +303,7 @@ $ haproxy -f haproxy.cfg
 Note the errors above, can you determine why this did not work?  If you guessed that we werent able to resolve DNS you were correct. Before we go setting up DNS servers or modifying system files, lets make sure we can communicate properly between our local system and our cluster's services.
 
 == Enable Cluster upport for Haproxy loadbalancing
-. Create services to expose each CockroachDB pod we with to loadbalance traffic to
+. Create services to expose each CockroachDB pod that will accept loadbalanced traffic
 +
 ----
 $ kubectl expose pod/cockroachdb-0 --type=LoadBalancer --name=cockroachdb-pod0
@@ -344,7 +344,7 @@ cockroachdb-pod1     LoadBalancer   10.106.246.239   10.106.246.239   26257:3014
 cockroachdb-pod2     LoadBalancer   10.97.97.234     10.97.97.234     26257:32424/TCP,8080:30045/TCP   118s
 ----
 
-. With the Minukube tunnel still running, Let's test that we can reach the CockroachDB Console via one of thos external IP addresses
+. With the Minukube tunnel still running, let's test that we can reach the CockroachDB Console via one of those external IP addresses
 +
 ----
 $ curl http://10.97.133.136:8080
@@ -410,11 +410,11 @@ listen psql
     server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster:26257 check port 8080
 ----
 
-. Start HAproxy with your new config file. Expect no errors if you have done everything correctly. Bes ure Minukube tunnel is still rinning first.
+. Start HAproxy with your new config file. Expect no errors if you have done everything correctly. Be sure Minikube tunnel is still running first, and throughout the remaining labs.
 +
 ----
 $ haproxy -f haproxy.cfg
 ----
 
-== Performance Testing and Monitoring CoockroachDB Workloads
+== Performance Testing and Monitoring CockroachDB Workloads
 
