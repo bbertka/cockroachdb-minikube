@@ -614,7 +614,7 @@ pod "cockroachdb-2" deleted
 image:images/2-generating-loads-4.png[]
 image:images/2-generating-loads-5.png[]
 
-. Forcefully (ungraceful) node killing yields the same result as before -- the system right away notices a node is down and anew one is created.
+. Forcefully (ungraceful) node killing yields the same result as before -- the system right away notices a node is down and a new one is created.
 +
 ----
 $ kubectl delete pod/cockroachdb-2 --grace-period=0 --force
@@ -631,11 +631,11 @@ image:images/2-generating-loads-6.png[]
 
 == Decommissioning CockroachDB Nodes
 
-We have seen how easy it is to scale up the CockroachDB cluster, and how resilient it can be with Kubernetes respawning nodes.  But how to we properly decomission a node?  Say for instance we want to remove permenantly all but one node in the cluster (for instance the node we are accessing the Consule through).  To do that we need to properly decommission the unwanted nodes.  
+We have seen how easy it is to scale up the CockroachDB cluster, and how resilient it can be with Kubernetes respawning nodes.  But how to we properly decomission a node?  Say for instance we want to remove permanently all but one node in the cluster (for instance the node we are accessing the Consule through).  To do that we need to properly decommission the unwanted nodes.  
 
-CockroachDB ships with more goodness to help you decommission nodes via a 'decommission' routine available to you witht he cockroach cli.  We need to know the cluser ID number for each node we wish to decommission.  In this case, we want to decom all but the '0' node which is running our dashboard.
+CockroachDB ships with more goodness to help you decommission nodes via a 'decommission' routine available to you with the cockroach cli.  We need to know the cluser ID number for each node we wish to decommission.  In this case, we want to decom all but the '0' node which is running our dashboard.
 
-. Execute a temporary CockroachDB container that runs get node status information on each node in the cluster, make note of the IDs in the left column; we have IDs 1-4 corresponding to our four clusters.  Note that node ID does not exactl map to the FQDN's replica number!
+. Execute a temporary CockroachDB container that returns node-status information on each node in the cluster and observe the IDs in the left column; we see IDs 1-4 corresponding to our four clusters.  Note that a node ID does not exactly map to the FQDN's replica number!
 +
 ----
 $ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node status --insecure --host=cockroachdb-public
@@ -666,6 +666,8 @@ pod "cockroachdb" deleted
 image:images/2-decom-1.png[]
 
 . Run the CockroachDB 'decommission' routine on remaining nodes with ID '3' and '4'
++
+----
 $ kubectl run cockroachdb -it --image=cockroachdb/cockroach:v20.1.2 --rm --restart=Never -- node decommission 3 --insecure --$
 If you don't see a command prompt, try pressing enter.
 .
