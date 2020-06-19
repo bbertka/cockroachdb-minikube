@@ -209,9 +209,9 @@ You have successfully set up CockroachDB on your system with Kubernetes!
 
 = Part 2 - Behaviour & Performance Monitoring 
 
-Now we will test the behaviour and performance of CockroachDB under various circumstances including failing nodes, and workloads.  Since we are in a home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minikube environment. Hence we will first set up HAproxy to get our system wired up for communucating from our local workstation into the Minukube cluster. 
+Now we will test the behaviour and performance of CockroachDB under various circumstances including failing nodes, and workloads.  Since we are in a home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minikube environment. We will first set up HAproxy to get our system wired up for communicating from our local workstation into the Minukube cluster. 
 
-But this isn't an HAproxy lab, its a CockroachDB lab, and CockroachDB comes with come goodness that make working with HAproxy easier.  Included is an HAproxy config file generator which we can leverage to more easily build a config which allows us to loadbalance into our cluster.
+CockroachDB ships with come goodness that makes working with HAproxy easier.  Included is an HAproxy config file generator which we can leverage to more easily build a config which allows us to loadbalance into our cluster.
 
 == Install CockroachDB locally
 . Download the CockroachDB bits and move to a user accessible location
@@ -247,7 +247,7 @@ Forwarding from [::1]:26257 -> 26257
 $ cockroach gen haproxy --insecure --host=127.0.0.1 --port=26257
 ----
 +
-. View the newly created HAproxy config file.  Notice the default host names created for us. We will need to confgiure our system to understand these mappings later.  At this point you can close your port-forward session.
+. View the newly created HAproxy config file.  Notice the default host names created for us. We will need to configure our system to understand these mappings later.  At this point you can close your port-forward session.
 +
 ----
 $ cat haproxy.cfg 
@@ -302,9 +302,21 @@ $ haproxy -f haproxy.cfg
 
 Note the errors above, can you determine why this did not work?  If you guessed that we werent able to resolve DNS you were correct. Before we go setting up DNS servers or modifying system files, lets make sure we can communicate properly between our local system and our cluster's services.
 
-== Configure Minikube to support Haproxy loadbalancing 
+== Enable Cluster upport for Haproxy loadbalancing
+. Create services to expose each CockroachDB pod we with to loadbalance traffic to
++
+----
+$ kubectl expose pod/cockroachdb-0 --type=LoadBalancer --name=cockroachdb-pod0
+service/cockroachdb-pod0 exposed
 
-. Enable support for running a loadbalancer on Minikube with Minikube's communication 'tunnel'. Starting the tunnel is simple.
+$ kubectl expose pod/cockroachdb-1 --type=LoadBalancer --name=cockroachdb-pod1
+service/cockroachdb-pod1 exposed
+
+$ kubectl expose pod/cockroachdb-2 --type=LoadBalancer --name=cockroachdb-pod2
+service/cockroachdb-pod2 exposed
+----
+
+. Ensure communication between HAproxy and Minikube with Minikube's communication 'tunnel'. Starting the tunnel is simple.  Note the previously created cluster services are listed.
 +
 ----
 $ minikube tunnel
@@ -321,7 +333,7 @@ Status:
         loadbalancer emulator: no errors
 ----
 
-. Note the pod services are listed. Let's inspect what has happened to our closuer services. Observe we have External IP addresses assigned to our pod services.
+. Let's inspect our cluster services and observe we have External IP addresses assigned to them.
 +
 ----
 $ kubectl get svc -w
@@ -398,7 +410,7 @@ listen psql
     server cockroach3 cockroachdb-1.cockroachdb.default.svc.cluster:26257 check port 8080
 ----
 
-. With Minikube tunnel still running, Start HAproxy with your new config file. Expect no errors if you have done everything correctly
+. Start HAproxy with your new config file. Expect no errors if you have done everything correctly. Bes ure Minukube tunnel is still rinning first.
 +
 ----
 $ haproxy -f haproxy.cfg
