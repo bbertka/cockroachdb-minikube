@@ -895,6 +895,7 @@ image:images/3-python-run.png[]
 
 . Quick Links
 
-link:/cockroachdb-minikube#part-5---python-code-example[Code Example]
+link:https://github.com/bbertka/cockroachdb-minikube#part-5---python-code-example[Code Example]
 
+link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haproxy-for-cockroachdb-on-minukube[Configuring HAproxy for CRDB on Minukbe]
 
