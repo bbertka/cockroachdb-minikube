@@ -105,6 +105,7 @@ spec:
 +
 ----
 $ kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cockroachdb-statefulset.yaml
+$ kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/cluster-init.yaml
 ----
 
 . View the newly created resources.  We have three pods and some services to allow communication. 
@@ -456,7 +457,8 @@ _elapsed___errors__ops/sec(inst)___ops/sec(cum)__p50(ms)__p95(ms)__p99(ms)_pMax(
 ----
 $ cockroach workload init intro 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:13:50.480674 1 workload/workloadsql/dataload.go:140  imported mytable (0s, 42 rows)
-bens-mac-mini:cockroach-openshift bbertka$ cockroach sql --insecure
+
+$ cockroach sql --insecure
 #
 # Welcome to the CockroachDB SQL shell.
 # All statements must be terminated by a semicolon.
@@ -512,7 +514,8 @@ root@:26257/defaultdb> exit
 $ cockroach workload init startrek 'postgresql://root@localhost:26257?sslmode=disable'
 I200618 17:15:29.804602 1 workload/workloadsql/dataload.go:140  imported episodes (0s, 79 rows)
 I200618 17:15:30.271431 1 workload/workloadsql/dataload.go:140  imported quotes (0s, 200 rows)
-bens-mac-mini:cockroach-openshift bbertka$ cockroach sql --insecure
+
+$ cockroach sql --insecure
 #
 # Welcome to the CockroachDB SQL shell.
 # All statements must be terminated by a semicolon.
@@ -726,4 +729,146 @@ pod/cockroachdb-2   1/1     Terminating   0          35m
 pod/cockroachdb-3   0/1     Terminating   0          35m
 ----
 
+. Before we move on to start coding, we will edit the stateful set to scale back to three nodes. Edit the spec.replica variable to show 3 replicas, then save and exiit your editor. Kuberntes will automatically make the change.
++
+----
+$ kubectl edit statefulset.apps/cockroachdb
+...
+  selfLink: /apis/apps/v1/namespaces/default/statefulsets/cockroachdb
+  uid: 599c096d-a40d-4355-bd6b-d7c03aace69e
+spec:
+  podManagementPolicy: Parallel
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: cockroachdb
+  serviceName: cockroachdb
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cockroachdb
+...
+----
+
+. Confirm the system is running with three nodes again
++
+----
+$ kubectl get all
+NAME                READY   STATUS    RESTARTS   AGE
+pod/cockroachdb-0   0/1     Running   2          5h29m
+pod/cockroachdb-1   0/1     Running   0          7s
+pod/cockroachdb-2   0/1     Running   0          7s
+----
+
 = Part 5 - Python Code Example
+
+This section details how we can use CockroachDB within an application written in Python.  In order to connect to a DB we need  to leverage the Python link:https://pypi.org/project/psycopg2/[psycopg2] package, a PostgreSQL database adapter for the Python programming language.
+
+. Install the psycopg2 package onto your system and verify
++
+----
+$ pip install psycopg2
+
+$ pip show psycopg2
+Name: psycopg2
+Version: 2.8.5
+Summary: psycopg2 - Python-PostgreSQL Database Adapter
+Home-page: https://psycopg.org/
+Author: Daniele Varrazzo
+Author-email: daniele.varrazzo@gmail.org
+License: LGPL with exceptions
+Location: /Users/bbertka/Library/Python/2.7/lib/python/site-packages
+Requires:
+Required-by:
+----
+
+. Let's create some data before we utilize the demo script. We will connect to the cluster with the CockroachDB shell and run some SQL commands.  Note the user we are creating names 'maxroach'
++
+----
+$ cockroach sql --insecure
+#
+# Welcome to the CockroachDB SQL shell.
+# All statements must be terminated by a semicolon.
+# To exit, type: \q.
+#
+# Server version: CockroachDB CCL v20.1.2 (x86_64-unknown-linux-gnu, built 2020/06/09 16:11:36, go1.13.9) (same version as client)
+# Cluster ID: 8c3882d7-a021-4eb6-8785-0700653ec42b
+#
+# Enter \? for a brief introduction.
+#
+root@:26257/defaultdb> 
+
+root@:26257/defaultdb> CREATE DATABASE bank;
+CREATE DATABASE
+
+Time: 36.361ms
+
+root@:26257/defaultdb> GRANT ALL ON DATABASE bank TO maxroach;
+GRANT
+
+Time: 23.296ms
+----
+
+. Now lets utilize some python code from the CockroachDB sample repositories. check out the Main() method we will be updating
++
+----
+$ git clone https://github.com/cockroachlabs/hello-world-python-psycopg2/
+----
+
+. After a successful run of the previous code, modify the Main method to make the code run perpetually. We will continuously swap the To and Fromuser IDs after  each transaction as if they a lending and getting paid back in return:
++
+----
+def main():
+    dsn = 'postgresql://maxroach@localhost:26257/bank?sslmode=disable'
+    conn = psycopg2.connect(dsn)
+
+    create_accounts(conn)
+    print_balances(conn)
+
+    amount = 100
+    fromId = 1
+    toId = 2
+
+    while True:
+        try:
+            run_transaction(conn, lambda conn: transfer_funds(conn, fromId, toId, amount))
+        except ValueError as ve:
+            logging.debug("run_transaction(conn, op) failed: {}".format(ve))
+        print_balances(conn)
+
+        # swap the to/from accounts so this runs perpetually
+        tmp = fromId
+        fromId = toId
+        toId =  tmp
+
+    delete_accounts(conn)
+
+    # Close communication with the database.
+    conn.close()
+----
+
+. Output will look similar to this:
++
+----
+Balances at Sat Jun 20 11:22:21 2020
+['1', '1000']
+['2', '1000']
+Balances at Sat Jun 20 11:22:21 2020
+['1', '900']
+['2', '1100']
+Balances at Sat Jun 20 11:22:21 2020
+['1', '1000']
+['2', '1000']
+Balances at Sat Jun 20 11:22:21 2020
+['1', '900']
+['2', '1100']
+Balances at Sat Jun 20 11:22:21 2020
+['1', '1000']
+['2', '1000']
+...
+----
+
+. Running the modified code for some time will show actiuvity on the CockroachDB SQL dashboard
+
