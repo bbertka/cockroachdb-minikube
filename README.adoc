@@ -872,3 +872,4 @@ Balances at Sat Jun 20 11:22:21 2020
 
 . Running the modified code for some time will show actiuvity on the CockroachDB SQL dashboard
 
+image:images/3-python-run.png[]
