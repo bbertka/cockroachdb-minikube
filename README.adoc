@@ -762,6 +762,9 @@ pod/cockroachdb-1   0/1     Running   0          7s
 pod/cockroachdb-2   0/1     Running   0          7s
 ----
 
+. Note that the three respawned nodes contniue to show their decomissioning status as well as the final status of the fourth node.
+image:images/2-decom-2.png[]
+
 = Part 5 - Python Code Example
 
 This section details how we can use CockroachDB within an application written in Python.  In order to connect to a DB we need  to leverage the Python link:https://pypi.org/project/psycopg2/[psycopg2] package, a PostgreSQL database adapter for the Python programming language.
