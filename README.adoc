@@ -10,6 +10,7 @@ At the end of this write-up, I have some analysis to share of my personal experi
 == Assumptions
 . This lab is intended to jumpstart your learning and allow you the freedom to explore CockroachDB with minimal effort in your local (home) dev environment.  Please consult the official documentation for getting a production grade set of clusters running. Note that instead of creating a 'tools' VM, this lab is installing software on your local machine.  Also this lab makes use of installing binaries when possible as a matter of personal taste.
 
+[#environment-setup]
 = Part 1 - Setting up the Environment
 
 == Requirements
@@ -210,6 +211,7 @@ pod "cockroachdb" deleted
 == Congratulations!
 You have successfully set up CockroachDB on your system with Kubernetes!
 
+[#configure-haproxy]
 = Part 2 - Configuring HAproxy for CockroachDB on Minukube
 
 Before we can effectively test the behaviour and performance of an HA CockroachDB cluster under various circumstances including failing nodes, and workloads in our home lab, it is necessary for us to set up and configure a proxy to the cluster residing in the Minikube environment. We will first set up HAproxy to get our system wired up for communicating from our local workstation into the Minukube cluster. 
@@ -419,6 +421,7 @@ listen psql
 $ haproxy -f haproxy.cfg
 ----
 
+[#monitoring]
 = Part 3 - CockroachDB Workload Monitoring & Performance
 
 We will start with executing the samples found in the link:https://www.cockroachlabs.com/docs/v2.1/cockroach-workload.html[official CockroachDB sample workloads] documentation
@@ -594,6 +597,7 @@ After running the above workloads [1-6] our dashboard now has some activity to r
 image:images/2-generating-loads-2.png[]
 image:images/2-generating-loads-3.png[]
 
+[#high-availabililty]
 = Part 4 - CockroachDB High Availability
 
 In the previous section we simply accessed a healthy cluster and performed activity such that we were able to watch the Console update in real time. Pretty cool eh?  Now we will see how resialiant CockroachDB really is by unleashing the Chaos monkey, or chaos roacher, you!
@@ -767,6 +771,7 @@ pod/cockroachdb-2   0/1     Running   0          7s
 . Note that the three respawned nodes contniue to show their decomissioning status as well as the final status of the fourth node.
 image:images/2-decom-2.png[]
 
+[#code-example]
 = Part 5 - Python Code Example
 
 This section details how we can use CockroachDB within an application written in Python.  In order to connect to a DB we need  to leverage the Python link:https://pypi.org/project/psycopg2/[psycopg2] package, a PostgreSQL database adapter for the Python programming language.
@@ -822,7 +827,7 @@ Time: 23.296ms
 $ git clone https://github.com/cockroachlabs/hello-world-python-psycopg2/
 ----
 
-. After a successful run of the previous code, modify the Main method to make the code run perpetually. We will continuously swap the To and Fromuser IDs after  each transaction as if they a lending and getting paid back in return:
+. After a successful run of the previous code, modify the Main method to make the code run perpetually. We will continuously swap the To and From user IDs after  each transaction as if they a lending and getting paid back in return:
 +
 ----
 def main():
@@ -875,16 +880,21 @@ Balances at Sat Jun 20 11:22:21 2020
 ...
 ----
 
-. Running the modified code for some time will show actiuvity on the CockroachDB SQL dashboard
+. Running the modified code for some time will show activity on the CockroachDB SQL dashboard
 
 image:images/3-python-run.png[]
 
+[#analysis]
 = Analysis
 
-. We walked through a vanilla installation and test drive of CRDB, leveraging Kubernetes for its deployment via  Minukube on Virtualbox.  In general, setting up the cluster was very straight forward using kubernetes. We can simiply modify the stateful-set to give ourselves more or less nodes to play with up fron -- even version controlling our stateful set with is very convenient.  Kubernetes provides high availability to nodes running Cockroach and this is very convenient, for the uptime of our nodes is managed in case of failures, or scaling in/out is a simple kubernetes construct.  In terms of monitoring Cockroach, the Console UI is very convenient and provides details on a number of aspects iuncluding the IaaS resources being consumed by the nodes, as well as the Database and SQL performace and statistics. CockroachDB on Kubernetes seems the way to go for managing high availability of the DB cluster.  IIn terms of this lab, Minikube is convenient, however not really close to a production deployment, hence more testing is needed to really kick the tires here.  With that said, the documentation is clear and there are other labs out there showing how to link:https://github.com/chriscasano/cockroach-openshift[get started on OpenShift for example].  For my case here (and potentially yours of you follow this), your system will need enough resources to run Minikube and not be bogged down in some of the more intensive tests.  My system was a mere 2012 Mac Mini with 100G usable storage, and 16G ram on a Core i5 - a bit behind, however it got the job done.
+. We walked through a vanilla installation and test drive of CRDB, leveraging K8s for its deployment via Minukube on Virtualbox.  In general, setting up the cluster was very straight forward. We simply modifed the stateful-set to give ourselves more or less nodes to play with up front — giving us the option of version controlling our deployment preferences. K8s provides high availability to nodes running CRDB, and this is very convenient, for the uptime of our nodes is managed in case of failures, or scaling in/out is a simple K8s construct. In terms of monitoring CRDB, the Console UI is very convenient and provides details on a number of aspects including the IaaS resources being consumed by the nodes, as well as the Database and SQL statistics. CRDB on K8s seems the way to go for managing HA of the DB cluster. In terms of this lab, Minikube is convenient, however not really close to a production deployment, hence more testing is needed to really kick the tires here. With that said, the Cockroach Labs documentation is vast, and there are other labs out there showing how to link:https://github.com/chriscasano/cockroach-openshift[get started on OpenShift for example].  For my case (and potentially yours if you follow this guide), your system will need enough resources to run Minikube to not be bogged down in some of the more intensive tests.  My system was a mere 2012 Mac Mini with 100G usable storage, and 16G ram on a Core i5 - a bit behind, however it got the job done.
 
-. The distributed architecture of CRDB makes it worthy of Cloud Native DB status, however there are pros  and cons here. First of all, being distributed, reliable network and infrastructure resources is key -- agile architecture make failing less severe, but marks the importance of the reliability of what is standing up CRDB.  CRDB is as only as resialant and performant as the underlying system allows, but such is for any system, yes?  The best part of CRDB is that it was deploys as a stateful set of Kubernetes pods, without a centralized brain, or single point of failure within its own context.  The system lives on when removing nodes -- I never had to ask permission from a main brain  for instance.  This is different than other systems which require a brain node that schedules all the work amongst worker nodes.  The only con to having a brainless-system is that nodes are capable of more than the minimum viable work product, making them a hair larger than absilutely necessary, yet  this isnt a real problem, and actually a preference to myself not having a brain. In a  brain system, that brain is a single point of failure.  Here, the single point of failure is with the Kubernetes infrastructure/system.  So the question is really still, how to we manage the lifecycle of Kubernetes? A question we can answer in another discussion...
+. The distributed nature of CRDB makes it a suitable choice for Cloud Native architecture, however there are pros and cons here. First of all, being distributed, reliable network and infrastructure resources is key — agile architecture makes failing less severe, but marks the importance of the reliability of what is standing up CRDB.  CRDB is as only as resilient and performant as the underlying system allows, but such is for any system, yes? The best part of CRDB is that it was deployed as a stateful set of K8s pods, without a centralized brain, or single point of failure within its own context. The system lives on when removing nodes — I never had to ask permission from a main-brain for instance. This is different than other systems which require a brain node that schedules all the work amongst worker nodes. The only con to having a brainless-system is that nodes are capable of more than the minimum viable work product, making them a hair larger than absolutely necessary, yet this isn’t a real problem, and actually a preference to myself not having a brain. In a brain system, that brain is a single point of failure. Here, the single point of failure is with aspects of K8s itself. So the question is really still, how to we manage the lifecycle of K8s? A question we can answer in another discussion.
 
-. Scaling and Failing with CRDB was pretty straigt forward, we simply add nodes to the stateful set, or we run a decomission routine before modifying the stateful set -- pretty simple!  In general, there are four areas where Scaling and Failing are interesting in context of my deployment on Minikube, that is while taking into consideration that my system was pretty light weight, and this entire write-up is based on my first view of the solution.  Performance, or stability of the system didnt seem impacted when adding or removing nodes as all systems were operational from the Developer's POV,  it seemed when adding a node to the cluster I was still chigging along performing work as expected, there was no reason for me to raise a flag to the CRDB or Platform team regarding system performance.  It was onlywhen I checked out the Dashboard that I could notice spikes in the utilizaiton of system resources of various nodes, as if they  were having to compensate for bringingon a new  node and getting them up to speed -- in all, a pretty great thing tobe able to challenge any user to useCRDB, make  it scaleand fail, yetnever be impacted as a Developer, mission accomplished.  A note -- I started thinking something was wrong with my system because nothing noticably bad  was happening when removing nodes, so I increasedmy node killing and started to repeatedly hammer away at the  command line with Kubectl in order to force some failures.  I could never get CRDB to break!   The only thing I can point out is it seems my Dashboard permanently shows nodes in a decommissioning state even though all the ndoes are fully decommissioned and I have run examples more than once.  Maybe this is a bug, or there is some clean up I need to learn to do still as part of a scaling procedure.  Killing all nodes except for one -- that didnt have an effect either.  Which begs the question, should we even be allowed to do that? Some safeguards around the deoployment of CRDS onto Kubernetes is in order, hence a Platform like OpenShift of VMWare Tanzu Kubernetes Grid are good choices which abstract the management of Kubernetes enough so users arent individually managing pods, assume there is an integration and opinion dictating mins and maxes of capabilities such as how many nodes minimum at one time a user can configure -- again, another topic for another time.  In all, CRDB behaved better than I expected on my particular system die to its lean specs, as well as in general being run within Containers on Kubernetes.  I rate CRDB a 10 out of 10 as I was pleasantly surprised at how resilient, easy to use, and how well documented it was for me to figure out how to do everything.
+. Scaling and Failing with CRDB was pretty straight forward, we simply add nodes to the stateful set, or we run a decommission routine before modifying the stateful set — pretty simple! In general, there are four areas where Scaling and Failing are interesting in context of my deployment on Minikube; that is, while taking into consideration my system was pretty light weight, and this entire write-up is based on an unbiased view of the solution. Performance, or stability of the system didn’t seem impacted when adding or removing nodes as all systems were operational from my (the Developer) POV, it seemed when adding a node to the cluster I was still chugging along performing work as expected, there was no reason for me to raise a flag to the CRDB or Platform team regarding system performance. It was only when I checked out the CRDB Console/Dashboard that I could notice spikes in the utilization of system resources of various nodes, as if they were having to compensate for bringing on a new node and getting them up to speed — in all, a pretty great thing to be able to challenge any user to use CRDB, make it scale and fail, yet deliver on the promise to never be impacted as a Developer. A note — I started thinking something was wrong with my system because nothing noticeably bad was happening when removing nodes, so I increased my node-killing and started to repeatedly hammering away at the command line with Kubectl in order to force some failures.  I could never get CRDB to break! The only thing I can point out is it seems my Dashboard permanently shows nodes in a decommissioning state even though all the nodes are fully decommissioned, and I have run examples more than once. Maybe this is a bug, or there is some clean up I need to learn to do still as part of a scaling procedure. Killing all nodes except for one — that didn’t have an effect either. Which begs the question, should we even be allowed to do that?  Some safeguards around the deployment of CRDS onto K8s is in order, hence a Platform like OpenShift of VMWare Tanzu Kubernetes Grid are good choices which abstract the management of K8s enough so users aren’t individually managing pods, assume there is an integration and opinion dictating boundary of capabilities, such as how many nodes minimum at one time a user can configure — again, another topic for another time. In all, CRDB behaved better than I expected on my particular system due to its lean specs, as well as in general being run within Containers on K8s.  I rate CRDB a 10 out of 10 as I was pleasantly surprised at how resilient, easy to use, and how well documented it was for me to figure out how to do everything.
 
-. Following is a demo of my Python code shown here:
+. Quick Links
+
+link:/environment-setup[Environment Setup]
+
+
