@@ -1,18 +1,19 @@
 = CockroachDB on Minikube
 
+== Navigation
+
+* link:https://github.com/bbertka/cockroachdb-minikube#part-1---setting-up-the-environment[Environment Setup]
+* link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haproxy-for-cockroachdb-on-minukube[Configuring HAproxy for CRDB on Minukbe]
+* link:https://github.com/bbertka/cockroachdb-minikube#part-3---cockroachdb-workload-monitoring--performance[Workload Monitoriung & Performance]
+* link:https://github.com/bbertka/cockroachdb-minikube#part-4---cockroachdb-high-availability[High Availability]
+* link:https://github.com/bbertka/cockroachdb-minikube#part-5---python-code-example[Python Code Example]
+* link:https://github.com/bbertka/cockroachdb-minikube#analysis[Analysis of Findings]
+* link:https://github.com/bbertka/cockroachdb-minikube#future[Future Work]
+
+== About
 This repository contains my experience of deploying CockroachDB with Kuberntes using Minikube, in a repeatable tutorial/workshop format.  Portions of this tutorial are from the official link:https://www.cockroachlabs.com/docs/stable/[CockroachDB] documention, yet are abbreviated and noted were applicable, however this repository includes extras such as setting up HAproxy on your local machine, etc.
 
 image:images/repo1-main-dashboard.png[]
-
-== Navigation
-
-link:https://github.com/bbertka/cockroachdb-minikube#part-1---setting-up-the-environment[Environment Setup]
-link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haproxy-for-cockroachdb-on-minukube[Configuring HAproxy for CRDB on Minukbe]
-link:https://github.com/bbertka/cockroachdb-minikube#part-3---cockroachdb-workload-monitoring--performance[Workload Monitoriung & Performance]
-link:https://github.com/bbertka/cockroachdb-minikube#part-4---cockroachdb-high-availability[High Availability]
-link:https://github.com/bbertka/cockroachdb-minikube#part-5---python-code-example[Python Code Example]
-link:https://github.com/bbertka/cockroachdb-minikube#analysis[Analysis of Findings]
-link:https://github.com/bbertka/cockroachdb-minikube#future[Future Work]
 
 After working through this lab you will have a highly-available triple-node CockroachDB cluster running within Minukube and fronted by Haproxy  on your local machine.  Included with this lab are instructions for DB/performance tests, monitoring, and a Python Lab to get your started. 
 
