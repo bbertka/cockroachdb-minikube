@@ -20,7 +20,7 @@ After working through this lab you will have a highly-available triple-node Cock
 At the end of this write-up, I have some analysis to share of my personal experience.  Yours may be different depending on a variaty of factors.
 
 == Assumptions
-. This lab is intended to jumpstart your learning and allow you the freedom to explore CockroachDB with minimal effort in your local (home) dev environment.  Please consult the official documentation for getting a production grade set of clusters running. Note that instead of creating a 'tools' VM, this lab is installing software on your local machine.  Also this lab makes use of installing binaries when possible as a matter of personal taste.
+This lab is intended to jumpstart your learning and allow you the freedom to explore CockroachDB with minimal effort in your local (home) dev environment.  Please consult the official documentation for getting a production grade set of clusters running. Note that instead of creating a 'tools' VM, this lab is installing software on your local machine.  Also this lab makes use of installing binaries when possible as a matter of personal taste.
 
 [#environment-setup]
 = Part 1 - Setting up the Environment
@@ -913,7 +913,7 @@ link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haprox
 
 [#future]
 = Future Work
-* More customized Python code example.  For this test-drive, I modified the code very minimally, however a nice Web App that allows data ot be added/removed via GUI, as well as a node kill switch would be interesting.  
+* More customized Python code example.  For this test-drive, I modified the code very minimally, however a nice Web App that allows data to be added/removed via GUI, as well as a node kill switch would be interesting.  
 * Deploying in production on Kubernetes.  I took the insecure approach for brevity and simplicity sake, however in production, security is a concern, as well as DR.
 * Multicloud deployments.  How to manage CRDB across AZs?
 
