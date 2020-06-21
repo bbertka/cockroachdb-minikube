@@ -1,6 +1,6 @@
 = CockroachDB on Minikube
 
-== Navigation
+== Contents
 
 * link:https://github.com/bbertka/cockroachdb-minikube#part-1---setting-up-the-environment[Environment Setup]
 * link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haproxy-for-cockroachdb-on-minukube[Configuring HAproxy for CRDB on Minukbe]
