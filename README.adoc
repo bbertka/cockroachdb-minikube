@@ -4,7 +4,7 @@
 
 * link:https://github.com/bbertka/cockroachdb-minikube#part-1---setting-up-the-environment[Environment Setup]
 * link:https://github.com/bbertka/cockroachdb-minikube#part-2---configuring-haproxy-for-cockroachdb-on-minukube[Configuring HAproxy for CRDB on Minukbe]
-* link:https://github.com/bbertka/cockroachdb-minikube#part-3---cockroachdb-workload-monitoring--performance[Workload Monitoriung & Performance]
+* link:https://github.com/bbertka/cockroachdb-minikube#part-3---cockroachdb-workload-monitoring--performance[Workload Monitoring & Performance]
 * link:https://github.com/bbertka/cockroachdb-minikube#part-4---cockroachdb-high-availability[High Availability]
 * link:https://github.com/bbertka/cockroachdb-minikube#part-5---python-code-example[Python Code Example]
 * link:https://github.com/bbertka/cockroachdb-minikube#analysis[Analysis of Findings]
