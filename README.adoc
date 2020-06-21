@@ -1,11 +1,11 @@
 = CockroachDB on Minikube
 
+image:images/repo1-main-dashboard.png[]
+
 == About
 This repository contains my experience of deploying CockroachDB with Kuberntes using Minikube, in a repeatable tutorial/workshop format.  Portions of this tutorial are from the official link:https://www.cockroachlabs.com/docs/stable/[CockroachDB] documention, yet are abbreviated and noted were applicable, however this repository includes extras such as setting up HAproxy on your local machine, etc.
 
 After working through this lab you will have a highly-available triple-node CockroachDB cluster running within Minikube and fronted by Haproxy on your local machine.  Included with this lab are instructions for DB/performance tests, monitoring, and a Python Lab to get your started. 
-
-image:images/repo1-main-dashboard.png[]
 
 == Contents
 * link:https://github.com/bbertka/cockroachdb-minikube#part-1---setting-up-the-environment[Environment Setup]
